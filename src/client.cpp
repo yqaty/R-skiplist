@@ -17,7 +17,7 @@ void* Alloc::alloc(int _size) {
 }
 
 void Block::print() {
-  printf("block:cap=%d len=%d\n", cap, len);
+  printf("block: cap=%d len=%d\n", cap, len);
   Node* node = (Node*)data;
   for (int i = 0; i < len; ++i) {
     (node + i)->print();
@@ -48,7 +48,7 @@ void Client::print() {
   printf("level = %d, p = %f\n", level, p);
   for (int i = level - 1; i >= 0; --i) {
     puts("---------------------------------------");
-    printf("%d layer\n", i);
+    printf("layer %d\n", i);
     Block* block = now;
     while (!block->is_empty()) {
       block->print();
@@ -87,7 +87,6 @@ int Client::get_height() {
   while (h < level && rand() <= p * RAND_MAX) {
     h++;
   }
-  std::cout << "h:" << h << std::endl;
   return h;
 }
 
