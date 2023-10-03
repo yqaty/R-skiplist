@@ -257,8 +257,6 @@ Node* Client::search(int key) {
     block = get_block(address);
     while (true) {
       Block* next_block = get_block(block->next);
-      std::cout << i << ' ' << next_block->cap << ' ' << block->cap
-                << std::endl;
       if (!next_block->is_empty() && next_block->get_key() <= key) {
         block = next_block;
       } else {
@@ -267,7 +265,6 @@ Node* Client::search(int key) {
     }
     int pos = get_node_from_block(block, key);
     node = (Node*)(block->data + sizeof(Node) * pos);
-    std::cout << pos << ' ' << block->len << std::endl;
     if (i) {
       address = node->down;
     }
