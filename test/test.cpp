@@ -1,7 +1,8 @@
-#include <bits/stdc++.h>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 
 #include "client.h"
-
 int main() {
   srand(time(0));
   Client client{3, 1.0 / 3, 3, BUFSIZE};

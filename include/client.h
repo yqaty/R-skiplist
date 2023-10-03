@@ -1,7 +1,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include <bits/stdc++.h>
+#include <vector>
 
 const int BUFSIZE = 1 << 22;
 class Alloc {

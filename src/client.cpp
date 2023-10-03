@@ -1,5 +1,8 @@
 #include "client.h"
 
+#include <cstdio>
+#include <cstring>
+
 Alloc::Alloc(int _size) : size(_size) {
   now = 0;
   buffer = (char*)malloc(size);
