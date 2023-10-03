@@ -9,11 +9,16 @@ int main() {
     client.insert(Node(i, i));
   }
   client.print();
-  for (int i = 1; i <= 10; ++i) {
-    printf("%d:\n", i);
-    client.search(i)->print();
+  for (int i = 1; i <= 11; ++i) {
+    printf("search %d:\n", i);
+    Node* node = client.search(i);
+    if (node != nullptr) {
+      node->print();
+    } else {
+      printf("%d not found!\n", i);
+    }
   }
-  client.update(Node(5, 250));
+  client.update(Node(5, 1212));
   std::vector<Node> nodes = client.range_query(2, 8);
   for (auto u : nodes) {
     u.print();
