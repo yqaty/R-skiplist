@@ -68,7 +68,7 @@ class Client {
   void insert(const Node &node);
   void remove(int key);
   Node *search(int key);
-  void update(const Node &node);
+  void update(const Node &node, bool op = false);
   std::vector<Node> range_query(int st, int ed);
 };
 

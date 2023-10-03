@@ -27,6 +27,7 @@ void Block::print() {
 void Block::init(int _cap, int _size) {
   cap = _cap;
   size = _size;
+  is_update = false;
   len = 0;
 }
 
@@ -35,13 +36,18 @@ int Block::get_key() {
   return node->key;
 }
 
-bool Block::is_empty() { return cap == 0; }
+bool Block::is_empty() { return len == 0; }
 
 bool Block::is_full() { return cap == len; }
 
-void Node::print() { printf("node: key=%d value=%d\n", key, value); }
+void Node::print() {
+  printf("node: key=%d value=%d ", key, value);
+  if (is_delete) printf("is_delete");
+  puts("");
+}
 
-Node::Node(int _key, int _value) : key(_key), value(_value) {}
+Node::Node(int _key, int _value)
+    : key(_key), value(_value), is_delete(false), is_head(false) {}
 
 void Client::print() {
   Block* now = head;
@@ -114,8 +120,9 @@ bool Client::get_range_nodes_from_block(std::vector<Node>& nodes, Block* block,
     return false;
   }
   Node* block_node = (Node*)block->data;
-  for (int i = 0; i < block->len; ++i) {
-    if ((block_node + i)->key >= st && (block_node + i)->key <= ed) {
+  for (int i = block_node->is_head ? 1 : 0; i < block->len; ++i) {
+    if ((block_node + i)->key >= st && (block_node + i)->key <= ed &&
+        !(block_node + i)->is_delete) {
       nodes.push_back(*(block_node + i));
     }
   }
@@ -167,10 +174,6 @@ void Client::remove_node(Block* block, int key) {
   block->len--;
 }
 
-void Client::remove_block(Block* block) {
-  memcpy(block, block->next, sizeof(Block) + block->next->cap * sizeof(Node));
-}
-
 Block* Client::remote_get(Block* address) { return address; }
 
 Block* Client::get_block(Block* address) {
@@ -203,6 +206,9 @@ void Client::insert(const Node& _node) {
   Node* target_nodes[level];
   find(node.key, target_blocks, target_nodes);
   if (!target_nodes[0]->is_head && target_nodes[0]->key == node.key) {
+    if (target_nodes[0]->is_delete) {
+      update(_node, true);
+    }
     return;
   }
   int h = get_height();
@@ -227,9 +233,10 @@ void Client::insert(const Node& _node) {
 }
 
 void Client::remove(int key) {
-  Block* target_blocks[level];
-  Node* target_nodes[level];
+  Block *target_blocks[level], *pre_blocks[level];
+  Node *target_nodes[level], *pre_nodes[level];
   find(key, target_blocks, target_nodes);
+  find(key - 1, pre_blocks, pre_nodes);
   bool is_mark = false;
   if (!target_nodes[level - 1]->is_head &&
       target_nodes[level - 1]->key == key) {
@@ -240,10 +247,14 @@ void Client::remove(int key) {
       if (is_mark) {
         target_nodes[i]->is_delete = true;
       } else {
+        target_blocks[i]->is_update = true;
         remove_node(target_blocks[i], key);
         if (target_blocks[i]->is_empty()) {
-          remove_block(target_blocks[i]);
+          target_blocks[i]->is_update = true;
+          pre_blocks[i]->next = target_blocks[i]->next;
+          target_blocks[i]->is_update = false;
         }
+        target_blocks[i]->is_update = false;
       }
     }
   }
@@ -269,22 +280,26 @@ Node* Client::search(int key) {
       address = node->down;
     }
   }
-  Node* res = (Node*)malloc(sizeof(Node));
-  memcpy(res, node, sizeof(Node));
-  if (node->key == key) {
+  if (node->key == key && !node->is_delete) {
+    Node* res = (Node*)malloc(sizeof(Node));
+    memcpy(res, node, sizeof(Node));
     return res;
   } else {
     return nullptr;
   }
 }
 
-void Client::update(const Node& _node) {
+void Client::update(const Node& node, bool op) {
   Block* target_blocks[level];
   Node* target_nodes[level];
-  find(_node.key, target_blocks, target_nodes);
+  find(node.key, target_blocks, target_nodes);
+  if (target_nodes[0]->is_head || target_nodes[0]->key != node.key ||
+      (target_nodes[0]->is_delete && !op)) {
+    return;
+  }
   for (int i = 0; i < level; ++i) {
-    if (!target_nodes[i]->is_head && target_nodes[i]->key == _node.key) {
-      target_nodes[i]->value = _node.value;
+    if (!target_nodes[i]->is_head && target_nodes[i]->key == node.key) {
+      target_nodes[i]->value = node.value;
     }
   }
 }

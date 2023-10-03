@@ -23,5 +23,9 @@ int main() {
   for (auto u : nodes) {
     u.print();
   }
+  for (int i = 1; i <= 10; ++i) {
+    client.remove(i);
+  }
+  client.print();
   return 0;
 }
